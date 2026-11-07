@@ -3,6 +3,7 @@ import { Alert, AppState, Pressable, Text, View } from "react-native";
 import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import {
+  canPauseForClass,
   formatTime,
   type AssessmentView,
   type AttemptView,
@@ -277,7 +278,7 @@ function ExamContent() {
                 Deadline-এর বাকি সময় কম হলে ততটুকুই পাবে। App বন্ধ বা অন্য app-এ
                 গেলে timer থামবে না।
               </P>
-              {exam.allowPause && user?.className !== "3" && (
+              {exam.allowPause && canPauseForClass(user?.className) && (
                 <P small>
                   Pause: সর্বোচ্চ {exam.maxPauseCount} বার, মোট{" "}
                   {exam.maxPauseSeconds / 60} মিনিট। Pause budget শেষ হলে timer
@@ -434,7 +435,7 @@ function ExamContent() {
               </View>
             </View>
           ))}
-          {view.assessment.allowPause && user?.className !== "3" && (
+          {view.assessment.allowPause && canPauseForClass(user?.className) && (
             <Button
               title={`Pause (${view.pauseCount}/${view.assessment.maxPauseCount})`}
               secondary
