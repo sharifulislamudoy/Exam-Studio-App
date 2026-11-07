@@ -1,0 +1,35 @@
+{
+  "cli": {
+    "version": ">=16.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "ALLOW_HTTP": "true"
+      },
+      "environment": "development"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "ALLOW_HTTP": "true"
+      },
+      "environment": "preview"
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "ALLOW_HTTP": "false"
+      },
+      "environment": "production"
+    }
+  }
+}
