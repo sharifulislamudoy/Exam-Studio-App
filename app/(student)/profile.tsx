@@ -1,34 +1,19 @@
 import { useState } from "react";
 import { Alert, Text, View } from "react-native";
-import { CLASSES } from "../src/contracts";
-import { useSession } from "../src/session";
-import { api } from "../src/api";
-import {
-  Gate,
-  Screen,
-  Card,
-  H1,
-  P,
-  Button,
-  styles,
-  errorMessage,
-} from "../src/ui";
+import { CLASSES } from "../../src/contracts";
+import { useSession } from "../../src/session";
+import { api } from "../../src/api";
+import { GlassCard, StudentScreen } from "../../src/student-ui";
+import { H1, P, Button, styles, errorMessage } from "../../src/ui";
 export default function Profile() {
-  return (
-    <Gate>
-      <Content />
-    </Gate>
-  );
-}
-function Content() {
   const { user, reload, logout } = useSession();
   const [cls, setCls] = useState(user?.className || "9");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   return (
-    <Screen>
+    <StudentScreen>
       <H1>আমার প্রোফাইল</H1>
-      <Card>
+      <GlassCard>
         <P>{user?.name}</P>
         <P small>{user?.email}</P>
         <P small>ID: {user?.id}</P>
@@ -38,8 +23,8 @@ function Content() {
             Class {user.requestedClass}-এ পরিবর্তন অনুমোদনের অপেক্ষায়।
           </P>
         )}
-      </Card>
-      <Card>
+      </GlassCard>
+      <GlassCard>
         <P>Class পরিবর্তনের আবেদন</P>
         <View style={styles.row}>
           {CLASSES.map((c) => (
@@ -70,7 +55,7 @@ function Content() {
           }}
         />
         {!!message && <Text style={styles.small}>{message}</Text>}
-      </Card>
+      </GlassCard>
       <Button
         title="Logout"
         secondary
@@ -81,6 +66,6 @@ function Content() {
           ])
         }
       />
-    </Screen>
+    </StudentScreen>
   );
 }

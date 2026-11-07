@@ -51,17 +51,15 @@ export default function Layout() {
               options={{ title: "Exam Studio", headerBackVisible: false }}
             />
             <Stack.Screen
-              name="dashboard"
-              options={{ title: "আমার dashboard", headerBackVisible: false }}
+              name="(student)"
+              options={{ headerShown: false }}
             />
             <Stack.Screen name="exam" options={{ title: "পরীক্ষা" }} />
             <Stack.Screen name="homework" options={{ title: "হোমওয়ার্ক" }} />
-            <Stack.Screen name="results" options={{ title: "ফলাফল" }} />
             <Stack.Screen
               name="notifications"
               options={{ title: "নোটিফিকেশন" }}
             />
-            <Stack.Screen name="profile" options={{ title: "আমার প্রোফাইল" }} />
           </Stack>
           {(hidden || examBlocked) && (
             <View

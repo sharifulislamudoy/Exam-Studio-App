@@ -1,16 +1,8 @@
 import { Text } from "react-native";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../src/api";
-import {
-  Gate,
-  Screen,
-  Card,
-  H1,
-  P,
-  Button,
-  styles,
-  errorMessage,
-} from "../src/ui";
+import { api } from "../../src/api";
+import { GlassCard, StudentScreen } from "../../src/student-ui";
+import { H1, P, Button, styles, errorMessage } from "../../src/ui";
 type Result = {
   id: string;
   title: string;
@@ -23,27 +15,20 @@ type Result = {
   feedback?: string;
 };
 export default function Results() {
-  return (
-    <Gate>
-      <Content />
-    </Gate>
-  );
-}
-function Content() {
   const rows = useQuery({
     queryKey: ["results"],
     queryFn: () => api<Result[]>("/results"),
     refetchInterval: 15000,
   });
   return (
-    <Screen>
+    <StudentScreen>
       <H1>আমার ফলাফল</H1>
       <Button title="Refresh" secondary onPress={() => void rows.refetch()} />
       {rows.error && (
         <Text style={styles.error}>{errorMessage(rows.error)}</Text>
       )}
       {rows.data?.map((r) => (
-        <Card key={r.id}>
+        <GlassCard key={r.id}>
           <P>{r.title}</P>
           <P small>
             {r.kind} · {r.status}
@@ -61,9 +46,9 @@ function Content() {
           ) : (
             <P>মূল্যায়ন / ফলাফল প্রকাশের অপেক্ষায়।</P>
           )}
-        </Card>
+        </GlassCard>
       ))}
       {rows.data?.length === 0 && <P>এখনও কোনো ফলাফল নেই।</P>}
-    </Screen>
+    </StudentScreen>
   );
 }

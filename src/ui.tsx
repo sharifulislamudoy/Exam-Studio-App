@@ -84,10 +84,16 @@ export const styles = StyleSheet.create({
   },
   selected: { borderColor: colors.accent, backgroundColor: "#edf4ef" },
 });
-export function Screen({ children }: { children: ReactNode }) {
+export function Screen({
+  children,
+  glass = false,
+}: {
+  children: ReactNode;
+  glass?: boolean;
+}) {
   return (
     <ScrollView
-      style={styles.screen}
+      style={[styles.screen, glass && { backgroundColor: "transparent" }]}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
