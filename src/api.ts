@@ -34,7 +34,7 @@ async function timedFetch(url: string, options: RequestInit) {
     return await fetch(url, { ...options, signal: ctrl.signal });
   } catch {
     throw new Error(
-      "API-তে সংযোগ হয়নি। ফোন ও কম্পিউটারের Wi-Fi এবং EXPO_PUBLIC_API_URL পরীক্ষা করো।",
+      "Could not reach the API. Check your connection and EXPO_PUBLIC_API_URL.",
     );
   } finally {
     clearTimeout(timeout);

@@ -54,11 +54,13 @@ export default function Layout() {
               name="(student)"
               options={{ headerShown: false }}
             />
-            <Stack.Screen name="exam" options={{ title: "পরীক্ষা" }} />
-            <Stack.Screen name="homework" options={{ title: "হোমওয়ার্ক" }} />
+            <Stack.Screen name="result" options={{ title: "Result" }} />
+            <Stack.Screen name="routine" options={{ title: "Weekly routine" }} />
+            <Stack.Screen name="exam" options={{ title: "Exam" }} />
+            <Stack.Screen name="homework" options={{ title: "Homework" }} />
             <Stack.Screen
               name="notifications"
-              options={{ title: "নোটিফিকেশন" }}
+              options={{ title: "Notifications" }}
             />
           </Stack>
           {(hidden || examBlocked) && (
@@ -76,7 +78,7 @@ export default function Layout() {
             >
               <Text>
                 {examBlocked && capture === "failed"
-                  ? "স্ক্রিন সুরক্ষা চালু হয়নি। অ্যাপ বন্ধ করে আবার খোলো।"
+                  ? "Screen protection could not be enabled. Close and reopen the app."
                   : "Exam Studio"}
               </Text>
               {!hidden && examBlocked && capture === "failed" && (
@@ -84,7 +86,7 @@ export default function Layout() {
                   accessibilityRole="button"
                   onPress={() => router.replace("/dashboard")}
                 >
-                  ড্যাশবোর্ডে ফিরে যাও
+                  Back to dashboard
                 </Text>
               )}
             </View>

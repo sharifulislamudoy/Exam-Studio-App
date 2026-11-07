@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, Text, View } from "react-native";
 import { CLASSES } from "../../src/contracts";
@@ -12,20 +13,20 @@ export default function Profile() {
   const [message, setMessage] = useState("");
   return (
     <StudentScreen>
-      <H1>আমার প্রোফাইল</H1>
+      <H1>My profile</H1>
       <GlassCard>
         <P>{user?.name}</P>
         <P small>{user?.email}</P>
         <P small>ID: {user?.id}</P>
-        <P>বর্তমান class: {user?.className}</P>
+        <P>Current class: {user?.className}</P>
         {user?.requestedClass && (
           <P small>
-            Class {user.requestedClass}-এ পরিবর্তন অনুমোদনের অপেক্ষায়।
+            Class {user.requestedClass} change is awaiting approval.
           </P>
         )}
       </GlassCard>
       <GlassCard>
-        <P>Class পরিবর্তনের আবেদন</P>
+        <P>Class change request</P>
         <View style={styles.row}>
           {CLASSES.map((c) => (
             <Button
@@ -37,7 +38,7 @@ export default function Profile() {
           ))}
         </View>
         <Button
-          title="আবেদন পাঠাও"
+          title="Send request"
           disabled={busy || cls === user?.className}
           onPress={async () => {
             setBusy(true);
@@ -45,7 +46,7 @@ export default function Profile() {
               await api("/me/class-request", "POST", { className: cls });
               await reload();
               setMessage(
-                "আবেদন পাঠানো হয়েছে। অনুমোদনের আগে পুরোনো class-ই থাকবে।",
+                "Request sent. Your class stays the same until the teacher approves it.",
               );
             } catch (e) {
               setMessage(errorMessage(e));
@@ -56,13 +57,14 @@ export default function Profile() {
         />
         {!!message && <Text style={styles.small}>{message}</Text>}
       </GlassCard>
+      <Button title="Weekly routine" secondary onPress={() => router.push("/routine")} />
       <Button
-        title="Logout"
+        title="Sign out"
         secondary
         onPress={() =>
-          Alert.alert("Logout করবে?", "চলমান পরীক্ষার timer থামবে না।", [
-            { text: "বাতিল", style: "cancel" },
-            { text: "Logout", onPress: () => void logout() },
+          Alert.alert("Sign out?", "The exam timer keeps running.", [
+            { text: "Cancel", style: "cancel" },
+            { text: "Sign out", onPress: () => void logout() },
           ])
         }
       />

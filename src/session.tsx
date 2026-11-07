@@ -72,7 +72,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       false,
     );
     if (result.user.role !== "STUDENT")
-      throw new Error("শিক্ষার্থীর অ্যাকাউন্ট দিয়ে লগইন করো।");
+      throw new Error("Sign in with a student account.");
     await saveTokens(result);
     qc.clear();
     setUser(result.user);

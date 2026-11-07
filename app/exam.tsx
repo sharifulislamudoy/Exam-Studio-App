@@ -7,9 +7,9 @@ import {
   formatTime,
   type AssessmentView,
   type AttemptView,
-} from "../src/contracts";
-import { api } from "../src/api";
-import { useSession } from "../src/session";
+} from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/contracts";
+import { api } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/api";
+import { useSession } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/session";
 import {
   queueAnswer,
   pendingAnswers,
@@ -26,7 +26,7 @@ import {
   styles,
   errorMessage,
   date,
-} from "../src/ui";
+} from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/ui";
 export default function Exam() {
   return (
     <Gate>
@@ -84,10 +84,10 @@ function ExamContent() {
       for (let round = 0; round < 30; round++) {
         const queued = await pendingAnswers(attemptId);
         if (!queued.length) {
-          setSyncState("সব উত্তর সংরক্ষিত");
+          setSyncState("All answers saved");
           return;
         }
-        setSyncState("উত্তর সংরক্ষণ হচ্ছে…");
+        setSyncState("Saving answers…");
         for (const a of queued) {
           const result = await api<{
             accepted: boolean;
@@ -100,12 +100,12 @@ function ExamContent() {
           if (!result.accepted) {
             await discardPending(attemptId);
             if (result.attempt) await adopt(result.attempt);
-            setSyncState("MCQ সময় শেষ। দেরিতে পৌঁছানো উত্তর গ্রহণ করা হয়নি।");
+            setSyncState("MCQ Time is up. Answers received after the deadline were rejected.");
             if (!rejected.current) {
               rejected.current = true;
               Alert.alert(
-                "সময় শেষ",
-                "সার্ভারে সময় শেষ হওয়ার পরে পৌঁছানো উত্তর গ্রহণ করা হয়নি।",
+                "Time is up",
+                "Answers received after the deadline were rejected.",
               );
             }
             return;
@@ -113,7 +113,7 @@ function ExamContent() {
           await markSaved(a);
         }
       }
-      throw new Error("এখনও উত্তর sync হচ্ছে। আবার চেষ্টা করো।");
+      throw new Error("Answers are still syncing. Try again.");
     })().finally(() => {
       flushing.current = null;
     });
@@ -235,7 +235,7 @@ function ExamContent() {
     )
       return;
     setSelected((p) => ({ ...p, [questionId]: index }));
-    setSyncState("সংরক্ষণ হচ্ছে…");
+    setSyncState("Saving…");
     choosing.current = choosing.current
       .catch(() => {})
       .then(() => queueAnswer(view.id, questionId, index));
@@ -243,7 +243,7 @@ function ExamContent() {
       .then(() => flush())
       .catch((e) => {
         setSyncState(
-          "নেটে সমস্যা। উত্তর ফোনে রাখা আছে; সময়ের মধ্যে sync হতে হবে।",
+          "Connection lost. Your answer is saved on this device and must sync before the deadline.",
         );
         setError(errorMessage(e));
       });
@@ -254,13 +254,13 @@ function ExamContent() {
     actionName: "SUBMIT_MCQ" | "FINISH",
   ) =>
     Alert.alert(name, body, [
-      { text: "বাতিল", style: "cancel" },
-      { text: "নিশ্চিত", onPress: () => void action(actionName) },
+      { text: "Cancel", style: "cancel" },
+      { text: "Confirm", onPress: () => void action(actionName) },
     ]);
   if (!attemptId)
     return (
       <Screen>
-        <H1>{exam?.title || "পরীক্ষা"}</H1>
+        <H1>{exam?.title || "Exam"}</H1>
         {(error || list.error) && (
           <Text style={styles.error}>{error || errorMessage(list.error)}</Text>
         )}
@@ -268,34 +268,41 @@ function ExamContent() {
           <>
             <Card>
               <P>{exam.instructions}</P>
-              <P small>চূড়ান্ত deadline: {date(exam.closesAt)}</P>
+              <P small>Opens: {date(exam.opensAt)}</P>
+              <P small>Final deadline: {date(exam.closesAt)}</P>
               <P small>
                 {exam.mode === "MCQ_CQ"
-                  ? `MCQ ${exam.mcqSeconds / 60} + extra ${exam.mcqExtraSeconds / 60} মিনিট। তারপর CQ ${exam.cqSeconds / 60} মিনিট।`
-                  : `লিখিত অংশ ${exam.writtenSeconds / 60} মিনিট।`}
+                  ? `MCQ ${exam.mcqSeconds / 60} + extra ${exam.mcqExtraSeconds / 60} min, then CQ ${exam.cqSeconds / 60} min.`
+                  : `Written section ${exam.writtenSeconds / 60} min.`}
               </P>
+              {Date.now() >= Date.parse(exam.opensAt) && Date.now() < Date.parse(exam.closesAt) && <P small>
+                Available now: up to {formatTime(Math.min(
+                  exam.mode === "MCQ_CQ" ? exam.mcqSeconds + exam.mcqExtraSeconds + exam.cqSeconds : exam.writtenSeconds,
+                  Math.floor((Date.parse(exam.closesAt) - Date.now()) / 1000),
+                ))}
+              </P>}
               <P small>
-                Deadline-এর বাকি সময় কম হলে ততটুকুই পাবে। App বন্ধ বা অন্য app-এ
-                গেলে timer থামবে না।
+                The deadline limits your available time. If you close or switch apps, the
+                timer keeps running.
               </P>
               {exam.allowPause && canPauseForClass(user?.className) && (
                 <P small>
-                  Pause: সর্বোচ্চ {exam.maxPauseCount} বার, মোট{" "}
-                  {exam.maxPauseSeconds / 60} মিনিট। Pause budget শেষ হলে timer
-                  নিজে থেকে চলবে।
+                  Pause: Maximum {exam.maxPauseCount} times, up to{" "}
+                  {exam.maxPauseSeconds / 60} min total. The timer
+                  resumes automatically.
                 </P>
               )}
             </Card>
             <Button
-              title="পরীক্ষা শুরু / ফিরে যাও"
-              disabled={busy}
+              title="Start or resume exam"
+              disabled={busy || Date.now() < Date.parse(exam.opensAt) || Date.now() >= Date.parse(exam.closesAt)}
               onPress={() =>
                 Alert.alert(
-                  "পরীক্ষা শুরু করবে?",
-                  "শুরু করার পর timer চলবে। CQ খাতায় লিখবে।",
+                  "Start exam?",
+                  "The timer starts immediately. Write CQ answers in your notebook.",
                   [
-                    { text: "বাতিল", style: "cancel" },
-                    { text: "শুরু", onPress: () => void start() },
+                    { text: "Cancel", style: "cancel" },
+                    { text: "Start", onPress: () => void start() },
                   ],
                 )
               }
@@ -307,21 +314,21 @@ function ExamContent() {
   if (!view)
     return (
       <Screen>
-        <P>পরীক্ষার অবস্থা যাচাই হচ্ছে…</P>
+        <P>Checking exam status…</P>
         {error && <Text style={styles.error}>{error}</Text>}
-        <Button title="আবার চেষ্টা করো" onPress={() => void refresh(true)} />
+        <Button title="Try again" onPress={() => void refresh(true)} />
       </Screen>
     );
   if (view.status === "FINISHED")
     return (
       <Screen>
-        <H1>পরীক্ষা শেষ হয়েছে</H1>
+        <H1>Exam complete</H1>
         <Card>
           <P>
-            MCQ-এর সংরক্ষিত উত্তর লক হয়েছে। লিখিত উত্তর খাতায় রাখো; শিক্ষক পরদিন
-            দেখবেন।
+            MCQ-answers are locked. Write your answers in your notebook and bring it to your next class.
+
           </P>
-          <P small>ফলাফল প্রকাশ হলে Results-এ দেখা যাবে।</P>
+          <P small>Published marks will appear in Results.</P>
         </Card>
         <Button
           title="Dashboard"
@@ -337,18 +344,18 @@ function ExamContent() {
           {view.phase === "MCQ"
             ? "MCQ"
             : view.phase === "CQ"
-              ? "CQ — খাতায় লেখো"
-              : "লিখিত — খাতায় লেখো"}
+              ? "CQ — Write in your notebook"
+              : "Written · use your notebook"}
         </P>
         <Text style={styles.timer}>
           {formatTime(view.status === "PAUSED" ? pauseRemaining : remaining)}
         </Text>
         <P small>
           {view.status === "PAUSED"
-            ? "Pause-এর বাকি সময়"
+            ? "Pause-Time until the deadline"
             : view.phase === "MCQ" && mainRemaining <= 0
-              ? "Extra সময় চলছে"
-              : "অংশটির বাকি সময়"}{" "}
+              ? "Extra In progress"
+              : "Section time remaining"}{" "}
           · Deadline: {date(view.deadline)}
         </P>
         {view.phase === "MCQ" && view.status === "ACTIVE" && (
@@ -359,7 +366,7 @@ function ExamContent() {
         <>
           <Text style={styles.error}>{error}</Text>
           <Button
-            title="সংযোগ আবার দেখো"
+            title="Retry connection"
             secondary
             onPress={() => void refresh(true)}
           />
@@ -367,10 +374,10 @@ function ExamContent() {
       )}
       {view.status === "PAUSED" ? (
         <Card>
-          <H1>পরীক্ষা paused</H1>
-          <P>প্রশ্ন লুকানো আছে। Pause-এর সময় শেষ হলে timer নিজে থেকে চলবে।</P>
+          <H1>Exam paused</H1>
+          <P>Questions are hidden. The exam resumes automatically when your break ends.</P>
           <P small>
-            ব্যবহার: {view.pauseCount} / {view.assessment.maxPauseCount} বার
+            Used: {view.pauseCount} / {view.assessment.maxPauseCount} times
           </P>
           <Button
             title="Resume"
@@ -380,9 +387,9 @@ function ExamContent() {
         </Card>
       ) : !foreground || locked || remaining <= 0 ? (
         <Card>
-          <P>সময় ও পরীক্ষার অবস্থা সার্ভারে যাচাই হচ্ছে।</P>
+          <P>Checking the exam timer with the server.</P>
           <Button
-            title="আবার যাচাই করো"
+            title="Check again"
             secondary
             onPress={() => void refresh(true)}
           />
@@ -392,7 +399,7 @@ function ExamContent() {
           {view.questions.map((q, i) => (
             <View style={styles.card} key={q.id}>
               <P small>
-                প্রশ্ন {i + 1} · {q.marks} নম্বর
+                Question {i + 1} · {q.marks} marks
               </P>
               <P>{q.text}</P>
               {q.type === "MCQ" &&
@@ -412,7 +419,7 @@ function ExamContent() {
                     ]}
                   >
                     <P>
-                      {["ক", "খ", "গ", "ঘ"][j]}) {o}
+                      {["A", "B", "C", "D"][j]}) {o}
                     </P>
                   </Pressable>
                 ))}
@@ -449,24 +456,24 @@ function ExamContent() {
           )}
           {view.phase === "MCQ" ? (
             <Button
-              title="MCQ জমা দিয়ে CQ শুরু"
+              title="MCQ Submit and start CQ"
               disabled={busy}
               onPress={() =>
                 confirm(
-                  "MCQ জমা দেবে?",
-                  "এরপর MCQ-তে ফিরে আসা যাবে না। CQ-এর সময় শুরু হবে।",
+                  "MCQ Submit MCQs?",
+                  "Your MCQ answers will be locked and the written timer will start.",
                   "SUBMIT_MCQ",
                 )
               }
             />
           ) : (
             <Button
-              title="খাতায় লেখা শেষ — পরীক্ষা শেষ করো"
+              title="Finish exam"
               disabled={busy}
               onPress={() =>
                 confirm(
-                  "পরীক্ষা শেষ করবে?",
-                  "প্রশ্ন আর দেখা যাবে না। তোমার উত্তর খাতায় রাখো।",
+                  "Finish exam?",
+                  "Questions will close. Keep your written answers in your notebook.",
                   "FINISH",
                 )
               }
@@ -475,7 +482,7 @@ function ExamContent() {
         </>
       )}
       <P small>
-        অন্য app-এ গেলে প্রশ্ন আড়াল হবে। অনুমোদিত Pause ছাড়া timer চলবে।
+        Questions are hidden when you switch apps. The timer keeps running unless you pause.
       </P>
     </Screen>
   );

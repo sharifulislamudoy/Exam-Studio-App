@@ -1,10 +1,11 @@
-import type { ComponentProps } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState, type ComponentProps } from "react";
+import { AccessibilityInfo, Animated, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSession } from "../../src/session";
 import { useInbox } from "../../src/inbox";
-import { Gate } from "../../src/ui";
+import { Button, Gate, H1, P } from "../../src/ui";
 import { StudentBackdrop, studentColors } from "../../src/student-ui";
 
 type Icon = ComponentProps<typeof Ionicons>["name"];
@@ -12,16 +13,18 @@ type Icon = ComponentProps<typeof Ionicons>["name"];
 const tabs = [
   { name: "dashboard", title: "Home", icon: "home-outline" },
   { name: "exams", title: "Exams", icon: "clipboard-outline" },
-  { name: "results", title: "Result", icon: "bar-chart-outline" },
   { name: "homeworks", title: "Homework", icon: "book-outline" },
+  { name: "results", title: "Results", icon: "bar-chart-outline" },
   { name: "profile", title: "Profile", icon: "person-outline" },
 ] as const satisfies ReadonlyArray<{ name: string; title: string; icon: Icon }>;
 
 export default function StudentLayout() {
+  const [profile, setProfile] = useState(false);
   return (
     <Gate>
       <StudentBackdrop>
         <StudentHeader />
+        <ProfileDrawer open={profile} close={() => setProfile(false)} />
         <Tabs
           initialRouteName="dashboard"
           backBehavior="initialRoute"
@@ -40,6 +43,7 @@ export default function StudentLayout() {
             <Tabs.Screen
               key={name}
               name={name}
+              listeners={name === "profile" ? { tabPress: (event) => { event.preventDefault(); setProfile(true); } } : undefined}
               options={{
                 title,
                 tabBarIcon: ({ color, focused }) => (
@@ -54,6 +58,36 @@ export default function StudentLayout() {
       </StudentBackdrop>
     </Gate>
   );
+}
+
+function ProfileDrawer({ open, close }: { open: boolean; close: () => void }) {
+  const { user } = useSession();
+  const slide = useRef(new Animated.Value(390)).current;
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    slide.setValue(390);
+    void AccessibilityInfo.isReduceMotionEnabled().then((reduce) => {
+      if (cancelled) return;
+      if (reduce) slide.setValue(0);
+      else Animated.timing(slide, { toValue: 0, duration: 220, useNativeDriver: true }).start();
+    }).catch(() => { if (!cancelled) slide.setValue(0); });
+    return () => { cancelled = true; slide.stopAnimation(); };
+  }, [open, slide]);
+  return <Modal visible={open} transparent animationType="none" onRequestClose={close}>
+    <View style={styles.drawerOverlay}>
+      <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="Close profile" />
+      <Animated.View style={[styles.drawer, { transform: [{ translateX: slide }] }]}>
+        <SafeAreaView style={styles.drawerContent} accessibilityViewIsModal>
+        <Button title="Close" secondary onPress={close} />
+        <H1>{user?.name}</H1>
+        <P small>Class {user?.className} · {user?.email}</P>
+        <Button title="Account settings" secondary onPress={() => { close(); router.navigate("/profile"); }} />
+        <Button title="Weekly routine" secondary onPress={() => { close(); router.push("/routine"); }} />
+        </SafeAreaView>
+      </Animated.View>
+    </View>
+  </Modal>;
 }
 
 function StudentHeader() {
@@ -90,13 +124,16 @@ function StudentHeader() {
 }
 
 const styles = StyleSheet.create({
+  drawerOverlay: { flex: 1, flexDirection: "row", justifyContent: "flex-end", backgroundColor: "#10241c66" },
+  drawer: { width: "82%", maxWidth: 390, backgroundColor: "#fff" },
+  drawerContent: { flex: 1, gap: 12, padding: 16 },
   header: {
     backgroundColor: studentColors.glass,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: studentColors.line,
   },
   headerContent: {
-    minHeight: 64,
+    minHeight: 56,
     paddingVertical: 8,
     paddingHorizontal: 18,
     flexDirection: "row",
@@ -141,7 +178,7 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
   },
   tabBar: {
-    backgroundColor: "rgba(255,255,255,0.93)",
+    backgroundColor: "#fff",
     borderTopColor: studentColors.line,
     elevation: 0,
   },

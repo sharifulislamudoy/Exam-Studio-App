@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { Redirect } from "expo-router";
-import { api } from "../src/api";
-import { CLASSES } from "../src/contracts";
-import { useSession } from "../src/session";
+import { api } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/api";
+import { CLASSES } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/contracts";
+import { useSession } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/session";
 import {
   Busy,
   Button,
@@ -14,7 +14,7 @@ import {
   Screen,
   errorMessage,
   styles,
-} from "../src/ui";
+} from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/ui";
 
 export default function Entry() {
   const session = useSession();
@@ -45,8 +45,8 @@ export default function Entry() {
 
   const classFields = (
     <>
-      <Input label="নাম" value={name} onChangeText={setName} maxLength={80} />
-      <P small>শ্রেণি নির্বাচন করো</P>
+      <Input label="Name" value={name} onChangeText={setName} maxLength={80} />
+      <P small>Choose a class</P>
       <View style={styles.row}>
         {CLASSES.map((c) => (
           <Button
@@ -67,7 +67,7 @@ export default function Entry() {
   return (
     <Screen>
       <H1>Exam Studio</H1>
-      <P>পরীক্ষা ও বাড়ির কাজ, এক জায়গায়।</P>
+      <P>Exams and homework</P>
       {!!(error || session.error) && (
         <Text accessibilityRole="alert" style={styles.error}>
           {error || session.error}
@@ -77,7 +77,7 @@ export default function Entry() {
         <Card>
           <View style={styles.row}>
             <Button
-              title="লগইন"
+              title="Sign in"
               secondary={mode !== "login"}
               disabled={busy}
               onPress={() => {
@@ -86,7 +86,7 @@ export default function Entry() {
               }}
             />
             <Button
-              title="নতুন অ্যাকাউন্ট"
+              title="New account"
               secondary={mode !== "signup"}
               disabled={busy}
               onPress={() => {
@@ -97,7 +97,7 @@ export default function Entry() {
           </View>
           {mode === "signup" && classFields}
           <Input
-            label="ইমেইল"
+            label="Email"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -107,7 +107,7 @@ export default function Entry() {
             maxLength={254}
           />
           <Input
-            label="পাসওয়ার্ড"
+            label="Password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -118,14 +118,14 @@ export default function Entry() {
               mode === "signup" ? "new-password" : "current-password"
             }
           />
-          {mode === "signup" && <P small>পাসওয়ার্ড অন্তত ৮ অক্ষরের হতে হবে।</P>}
+          {mode === "signup" && <P small>Password must be at least 8 characters.</P>}
           <Button
             title={
               busy
-                ? "অপেক্ষা করো…"
+                ? "Please wait…"
                 : mode === "signup"
-                  ? "অ্যাকাউন্ট তৈরি করো"
-                  : "প্রবেশ করো"
+                  ? "Create an account"
+                  : "Sign in"
             }
             disabled={
               busy ||
@@ -148,10 +148,10 @@ export default function Entry() {
         </Card>
       ) : !session.user.profileComplete ? (
         <Card>
-          <P>প্রথমবারের প্রোফাইল পূরণ করো।</P>
+          <P>Complete your profile.</P>
           {classFields}
           <Button
-            title="অনুমোদনের জন্য পাঠাও"
+            title="Request approval"
             disabled={busy || name.trim().length < 2 || !cls}
             onPress={() =>
               void run(async () => {
@@ -164,16 +164,16 @@ export default function Entry() {
       ) : (
         <Card>
           <P>
-            {session.user.name} · শ্রেণি {session.user.className}
+            {session.user.name} · Class {session.user.className}
           </P>
           <H1>
             {session.user.status === "REJECTED"
-              ? "অনুমোদন দেওয়া হয়নি"
-              : "অনুমোদনের অপেক্ষায়"}
+              ? "Approval denied"
+              : "Awaiting approval"}
           </H1>
-          <P>শিক্ষক অনুমোদন দিলে তোমার পরীক্ষা ও বাড়ির কাজ দেখা যাবে।</P>
+          <P>Exams and homework will appear after your teacher approves your account.</P>
           <Button
-            title="আবার দেখো"
+            title="Check again"
             disabled={busy}
             onPress={() => void run(session.reload)}
           />
@@ -182,7 +182,7 @@ export default function Entry() {
       {session.user && (
         <Button
           secondary
-          title="লগআউট"
+          title="Sign out"
           disabled={busy}
           onPress={() => void run(session.logout)}
         />

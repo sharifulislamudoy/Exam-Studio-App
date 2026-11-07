@@ -29,7 +29,7 @@ export function listenForPush(onOpen: () => void) {
 
 export async function registerPush() {
   if (!pushAvailable || !projectId)
-    throw new Error("পুশ নোটিফিকেশনের জন্য কনফিগার করা বিল্ড প্রয়োজন।");
+    throw new Error("Push notifications require a configured app build.");
   const Notifications = notificationModule();
   if (Platform.OS === "android")
     await Notifications.setNotificationChannelAsync("classroom", {
@@ -41,7 +41,7 @@ export async function registerPush() {
     permission = await Notifications.requestPermissionsAsync();
   if (permission.status !== "granted")
     throw new Error(
-      "Notification permission দেওয়া হয়নি। অ্যাপের inbox-এ কাজ দেখতে পারবে।",
+      "Notification permission was denied. You can still see updates in Notifications.",
     );
   const { data } = await Notifications.getExpoPushTokenAsync({ projectId });
   await api("/devices", "POST", { token: data });

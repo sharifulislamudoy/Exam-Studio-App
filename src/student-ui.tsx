@@ -9,19 +9,17 @@ import {
 import { Screen } from "./ui";
 
 export const studentColors = {
-  bg: "#eef7f4",
+  bg: "#f3f7f4",
   ink: "#172e32",
   muted: "#49636a",
-  accent: "#08665b",
-  glass: "rgba(255,255,255,0.78)",
+  accent: "#086646",
+  glass: "#ffffff",
   line: "#d6e6e4",
 };
 
 export function StudentBackdrop({ children }: { children: ReactNode }) {
   return (
     <View style={styles.backdrop}>
-      <View pointerEvents="none" style={[styles.glow, styles.mint]} />
-      <View pointerEvents="none" style={[styles.glow, styles.lilac]} />
       {children}
     </View>
   );
@@ -114,27 +112,12 @@ export function GlassCard({ children }: { children: ReactNode }) {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: studentColors.bg },
-  glow: { position: "absolute", borderRadius: 300 },
-  mint: {
-    width: 350,
-    height: 350,
-    top: -135,
-    right: -90,
-    backgroundColor: "#d0eee5",
-  },
-  lilac: {
-    width: 430,
-    height: 430,
-    bottom: -255,
-    left: -150,
-    backgroundColor: "#e6e8fa",
-  },
   section: { gap: 14 },
   card: {
     backgroundColor: studentColors.glass,
     borderWidth: 1,
     borderColor: studentColors.line,
-    borderRadius: 21,
+    borderRadius: 12,
     padding: 17,
     gap: 10,
   },

@@ -165,7 +165,7 @@ export function Busy() {
       ]}
     >
       <ActivityIndicator color={colors.accent} />
-      <P>লোড হচ্ছে…</P>
+      <P>Loading…</P>
     </View>
   );
 }
@@ -177,5 +177,5 @@ export function Gate({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 export const errorMessage = (e: unknown) =>
-  e instanceof Error ? e.message : "কাজটি সম্পন্ন হয়নি। আবার চেষ্টা করো।";
+  e instanceof Error ? e.message : "Something went wrong. Try again.";
 export const date = (s: string) => new Date(s).toLocaleString("en-GB");

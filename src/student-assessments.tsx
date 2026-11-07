@@ -2,8 +2,8 @@ import { StyleSheet, Text, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import type { AssessmentView } from "./contracts";
-import { api } from "./api";
+import type { AssessmentView } from "../contracts";
+import { api } from "../api";
 import { GlassCard, StudentScreen, studentColors } from "./student-ui";
 import { Button, H1, P, date, errorMessage, styles as ui } from "./ui";
 
@@ -26,7 +26,7 @@ export function AssessmentFeed({
 }) {
   return (
     <>
-      {list.isPending && <P>লোড হচ্ছে…</P>}
+      {list.isPending && <P>Loading…</P>}
       {list.error && (
         <Text accessibilityRole="alert" style={ui.error}>
           {errorMessage(list.error)}
@@ -35,7 +35,7 @@ export function AssessmentFeed({
       {items.map((item) => (
         <AssessmentCard key={item.id} item={item} />
       ))}
-      {list.isSuccess && items.length === 0 && (
+      {list.isSuccess && items.length === 0 && Boolean(empty) && (
         <GlassCard>
           <P>{empty}</P>
         </GlassCard>
@@ -47,26 +47,29 @@ export function AssessmentFeed({
 export function AssessmentList({ kind }: { kind: AssessmentView["kind"] }) {
   const list = useAssessments();
   const exam = kind === "EXAM";
-  const items = list.data?.filter((item) => item.kind === kind) ?? [];
+  const now = Date.now();
+  const items = (list.data ?? []).filter((item) => item.kind === kind);
+  const state = (item: AssessmentView) => item.attempt?.needsRevision ? "Needs revision"
+    : item.attempt?.status === "FINISHED" ? (exam ? "Completed" : "Submitted")
+    : Date.parse(item.closesAt) <= now ? "Closed"
+    : Date.parse(item.opensAt) > now ? "Upcoming"
+    : exam ? "Open now" : "To do";
+  const groups = exam ? ["Open now", "Upcoming", "Completed", "Closed"]
+    : ["Needs revision", "To do", "Upcoming", "Submitted", "Closed"];
 
   return (
     <StudentScreen animated>
-      <H1>{exam ? "পরীক্ষা" : "হোমওয়ার্ক"}</H1>
-      <P small>
-        {exam
-          ? "প্রকাশিত পরীক্ষা ও শুরুর সময় দেখো।"
-          : "প্রকাশিত বাড়ির কাজ ও জমার সময় দেখো।"}
-      </P>
+      <H1>{exam ? "Exam" : "Homework"}</H1>
       <RefreshAssessmentList list={list} />
-      <AssessmentFeed
-        list={list}
-        items={items}
-        empty={
-          exam
-            ? "এই মুহূর্তে কোনো পরীক্ষা নেই।"
-            : "এই মুহূর্তে কোনো হোমওয়ার্ক নেই।"
-        }
-      />
+      <AssessmentFeed list={list} items={[]} empty={!items.length ? (exam ? "No exams yet." : "No homework yet.") : ""} />
+      {groups.map((label) => {
+        const group = items.filter((item) => state(item) === label);
+        if (!group.length) return null;
+        return <View key={label} style={{ gap: 10 }}>
+          <Text style={ui.h2}>{label}</Text>
+          {group.map((item) => <AssessmentCard key={item.id} item={item} />)}
+        </View>;
+      })}
     </StudentScreen>
   );
 }
@@ -78,7 +81,7 @@ export function RefreshAssessmentList({
 }) {
   return (
     <Button
-      title={list.isFetching ? "লোড হচ্ছে…" : "Refresh"}
+      title={list.isFetching ? "Loading…" : "Refresh"}
       secondary
       disabled={list.isFetching}
       onPress={() => void list.refetch()}
@@ -89,10 +92,10 @@ export function RefreshAssessmentList({
 function AssessmentCard({ item }: { item: AssessmentView }) {
   const exam = item.kind === "EXAM";
   const finished = exam && item.attempt?.status === "FINISHED";
-  let title = "বিস্তারিত / শুরু";
-  if (!exam) title = "Homework দেখো";
-  else if (finished) title = "পরীক্ষা শেষ";
-  else if (item.attempt) title = "পরীক্ষায় ফিরে যাও";
+  let title = "View details";
+  if (!exam) title = item.attempt?.needsRevision ? "Needs revision" : item.attempt ? "View submission" : "View homework";
+  else if (finished) title = "View submission";
+  else if (item.attempt) title = "Resume exam";
 
   function open() {
     if (exam) {
@@ -115,13 +118,13 @@ function AssessmentCard({ item }: { item: AssessmentView }) {
           <Ionicons
             name={exam ? "clipboard-outline" : "book-outline"}
             size={20}
-            color={exam ? studentColors.accent : "#574487"}
+            color={exam ? studentColors.accent : "#086646"}
           />
         </View>
         <View style={styles.headingText}>
           <Text style={ui.h2}>{item.title}</Text>
           <P small>
-            {item.subject} · {item.totalMarks} নম্বর
+            {item.subject} · {item.totalMarks} marks
           </P>
         </View>
       </View>
@@ -132,18 +135,17 @@ function AssessmentCard({ item }: { item: AssessmentView }) {
           color={studentColors.muted}
         />
         <Text style={[ui.small, styles.headingText]}>
-          {`শুরু: ${date(item.opensAt)}\nশেষ: ${date(item.closesAt)}`}
+          {`Start: ${date(item.opensAt)}\nEnd: ${date(item.closesAt)}`}
         </Text>
       </View>
       {exam && (
         <P small>
           {item.mode === "MCQ_CQ"
-            ? `MCQ ${item.mcqSeconds / 60} + extra ${item.mcqExtraSeconds / 60} মিনিট → CQ ${item.cqSeconds / 60} মিনিট`
-            : `লিখিত ${item.writtenSeconds / 60} মিনিট`}
+            ? `MCQ ${item.mcqSeconds / 60} + extra ${item.mcqExtraSeconds / 60} min → CQ ${item.cqSeconds / 60} min`
+            : `Written ${item.writtenSeconds / 60} min`}
         </P>
       )}
-      {item.attempt && <P small>অবস্থা: {item.attempt.status}</P>}
-      <Button title={title} disabled={finished} onPress={open} />
+      <Button title={title} onPress={open} />
     </GlassCard>
   );
 }
@@ -159,7 +161,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#ddf1e9",
   },
-  homeworkBadge: { backgroundColor: "#ebe5fa" },
+  homeworkBadge: { backgroundColor: "#e7f3eb" },
   schedule: {
     flexDirection: "row",
     alignItems: "center",
