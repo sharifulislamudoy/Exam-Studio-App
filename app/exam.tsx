@@ -7,9 +7,9 @@ import {
   formatTime,
   type AssessmentView,
   type AttemptView,
-} from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/contracts";
-import { api } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/api";
-import { useSession } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/session";
+} from "../src/contracts";
+import { api } from "../src/api";
+import { useSession } from "../src/session";
 import {
   queueAnswer,
   pendingAnswers,
@@ -26,7 +26,7 @@ import {
   styles,
   errorMessage,
   date,
-} from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/ui";
+} from "../src/ui";
 export default function Exam() {
   return (
     <Gate>

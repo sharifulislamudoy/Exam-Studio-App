@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/api";
-import { Button, Card, Gate, H1, P, Screen, errorMessage } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/ui";
+import { api } from "../src/api";
+import { Button, Card, Gate, H1, P, Screen, errorMessage } from "../src/ui";
 
 type Lesson = {
   id: string;

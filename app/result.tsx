@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
-import { score, useResults } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/results";
-import { Button, Card, Gate, H1, P, Screen, errorMessage } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/ui";
+import { score, useResults } from "../src/results";
+import { Button, Card, Gate, H1, P, Screen, errorMessage } from "../src/ui";
 
 function Content() {
   const { id, assessmentId } = useLocalSearchParams<{ id?: string; assessmentId?: string }>();

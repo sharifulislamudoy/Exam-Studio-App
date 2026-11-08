@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { Redirect } from "expo-router";
-import { api } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/api";
-import { CLASSES } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/contracts";
-import { useSession } from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/session";
+import { api } from "../src/api";
+import { CLASSES } from "../src/contracts";
+import { useSession } from "../src/session";
 import {
   Busy,
   Button,
@@ -14,7 +14,7 @@ import {
   Screen,
   errorMessage,
   styles,
-} from "../../../Exam-Studio-Required-Files/Exam-Studio-App/src/ui";
+} from "../src/ui";
 
 export default function Entry() {
   const session = useSession();

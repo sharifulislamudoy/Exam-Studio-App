@@ -2,8 +2,8 @@ import { StyleSheet, Text, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import type { AssessmentView } from "../contracts";
-import { api } from "../api";
+import type { AssessmentView } from "./contracts";
+import { api } from "./api";
 import { GlassCard, StudentScreen, studentColors } from "./student-ui";
 import { Button, H1, P, date, errorMessage, styles as ui } from "./ui";
 
